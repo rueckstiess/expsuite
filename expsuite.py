@@ -382,13 +382,14 @@ class ExperimentSuite(object):
             p = Process(target=observe, args=(paramlist,))
             p.start()
         
-        # # DEBUG: call each experiment seperately (no worker pool)
-        # for e in explist:
-        #     mp_runrep(e)
-        
-        # create worker processes    
-        pool = Pool(processes=self.options.ncores)
-        pool.map(mp_runrep, explist)
+        # if only 1 process is required call each experiment seperately (no worker pool)
+        if self.options.ncores == 1:
+            for e in explist:
+                mp_runrep(e)
+        else:
+            # create worker processes    
+            pool = Pool(processes=self.options.ncores)
+            pool.map(mp_runrep, explist)
         
         if self.options.progress:
             # finalize ncurses
