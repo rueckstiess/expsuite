@@ -205,9 +205,12 @@ class ExperimentSuite(object):
                             
         f.close()
         if len(results) == 0:
-            return results
+            if len(tags) == 1:
+                return []
+            else:
+                return {}
             # raise ValueError('tag(s) not found: %s'%str(tags))
-        if len(results) == 1:
+        if len(tags) == 1:
             return results[results.keys()[0]]
         else:
             return results
