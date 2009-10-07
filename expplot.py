@@ -25,7 +25,7 @@ def creategraphs():
         for r in range(params['repetitions']):
             h = suite.get_history(exp, r, 'return')
             # if h != []:
-            hgraphs[exp].append(plt.plot(h, color='gray', alpha=0.5)[0])
+            hgraphs[exp].append(plt.plot(h, color='gray')[0])
 
         plt.title(exp)
         plt.gcf().canvas.draw()
@@ -51,14 +51,12 @@ if __name__ == '__main__':
                     l = plt.xlim()
                     plt.xlim(0, max(len(h)+1, l[1]))
                     l = plt.ylim()
-                    print l, len(h), h
                     plt.ylim(min(l[0], min(h)-0.1*abs(min(h))), max(l[1], max(h)+0.1*abs(max(h))))
                 
                     p.set_xdata(range(len(h)))
                     p.set_ydata(list(h))
 
                     
-        plt.gcf().canvas.draw()   
-        print 'x'    
+        plt.gcf().canvas.draw()      
         time.sleep(3)
 
