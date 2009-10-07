@@ -165,7 +165,8 @@ class ExperimentSuite(object):
         """ returns the whole history for one experiment and one repetition.
             tags can be a string or a list of strings. if tags is a string,
             the history is returned as list of values, if tags is a list of 
-            strings, history is returned as a dictionary of lists of values.
+            strings or 'all', history is returned as a dictionary of lists
+            of values.
         """
         params = self.read_params(exp)
            
@@ -181,7 +182,10 @@ class ExperimentSuite(object):
         try:
             f = open(logfile)
         except IOError:
-            return results
+            if len(tags) == 1:
+                return []
+            else:
+                return {}
 
         for line in f:
             pairs = line.split()
