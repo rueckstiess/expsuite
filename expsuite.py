@@ -11,8 +11,8 @@
 # ExperimentSuite will create directories, run the experiments and store the 
 # logged data. An aborted experiment can be resumed at any time. If you want
 # to resume it on iteration level (instead of repetition level) you need to
-# implement the restore_state and save_state method and set the 
-# restore_supported variable to True.
+# implement the restore_state and save_state method and make sure the 
+# restore_supported variable is set to True.
 #
 # Copyright 2009 - Thomas Rueckstiess
 #
@@ -266,6 +266,20 @@ class ExperimentSuite(object):
         params = [self.read_params(se) for se in subexps if all(map(lambda tv: tv in se, tagvalues))]
         
         return values, params
+
+    def get_histories_fix_params(self, exp, rep, tag, **kwargs):
+        """ this function uses get_history(..) but returns all histories where the
+            subexperiments match the additional kwargs arguments. if alpha=1.0,
+            beta = 0.01 is given, then only those experiment histories are returned,
+            as a list.
+        """ 
+        subexps = self.get_exps(exp)[1:]
+        tagvalues = [re.sub("0+$", '0', '%s%f'%(k, kwargs[k])) for k in kwargs]
+
+        histories = [self.get_history(se, rep, tag) for se in subexps if all(map(lambda tv: tv in se, tagvalues))]
+        params = [self.read_params(se) for se in subexps if all(map(lambda tv: tv in se, tagvalues))]
+
+        return histories, params
         
     
     def browse(self): 
@@ -324,7 +338,7 @@ class ExperimentSuite(object):
     
     def start(self):
         """ starts the experiments as given in the config file. """     
-        
+
         # if -b or -B option is set, only show information, don't
         # start the experiments
         if self.options.browse or self.options.browse_big:
@@ -358,7 +372,7 @@ class ExperimentSuite(object):
                 iparamlist.append(params)
         
         paramlist = iparamlist
-        
+
         # create directories, write config files
         for pl in paramlist:
             # create experiment path and subdir
