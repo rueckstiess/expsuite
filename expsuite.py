@@ -21,12 +21,14 @@
 from ConfigParser import ConfigParser
 from multiprocessing import Process, Pool, cpu_count
 from numpy import *
-import os, sys, time, itertools, re, optparse
+import os, sys, time, itertools, re, optparse, types
 
 def mp_runrep(args):
+    """ Helper function to allow multiprocessing support. """
     return ExperimentSuite.run_rep(*args)
 
 def progress(params, rep):
+    """ Helper function to calculate the progress made on one experiment. """
     name = params['name']
     fullpath = os.path.join(params['path'], params['name'])
     logname = os.path.join(fullpath, '%i.log'%rep)
@@ -37,6 +39,13 @@ def progress(params, rep):
         return int(100 * len(lines) / params['iterations'])
     else: 
         return 0
+
+def convert_param_to_dirname(param):
+    """ Helper function to convert a parameter value to a valid directory name. """
+    if type(param) == types.StringType:
+        return param
+    else:
+        return re.sub("0+$", '0', '%f'%param)
 
 
 class ExperimentSuite(object):
@@ -49,7 +58,7 @@ class ExperimentSuite(object):
         self.restore_supported = True
     
     def parse_opt(self):
-        """ parses the command line options for different settings """
+        """ parses the command line options for different settings. """
         optparser = optparse.OptionParser()
         optparser.add_option('-c', '--config',
             action='store', dest='config', type='string', default='experiments.cfg', 
@@ -75,7 +84,7 @@ class ExperimentSuite(object):
         return options, args
     
     def parse_cfg(self):
-        """ parses the given config file for experiments """
+        """ parses the given config file for experiments. """
         self.cfgparser = ConfigParser()
         self.cfgparser.read(self.options.config)
     
@@ -85,6 +94,10 @@ class ExperimentSuite(object):
             os.makedirs(path)
             
     def get_exps(self, path='.'):
+        """ go through all subdirectories starting at path and return the experiment
+            identifiers (= directory names) of all existing experiments. A directory
+            is considered an experiment if it contains a experiment.cfg file. 
+        """
         exps = []
         for dp, dn, fn in os.walk(path):
             if 'experiment.cfg' in fn:
@@ -94,6 +107,8 @@ class ExperimentSuite(object):
         return exps
     
     def items_to_params(self, items):
+        """ evaluate the found items (strings) to become floats, ints or lists. 
+        """
         params = {}
         for t,v in items:       
             try:
@@ -108,7 +123,7 @@ class ExperimentSuite(object):
         return params        
            
     def read_params(self, exp, cfgname='experiment.cfg'):
-        """ reads the parameters of the experiment (=path) given.
+        """ reads the parameters of the experiment (= path) given.
         """
         cfgp = ConfigParser()
         cfgp.read(os.path.join(exp, cfgname))
@@ -118,6 +133,9 @@ class ExperimentSuite(object):
         return params
 
     def find_exp(self, name, path='.'):
+        """ given an experiment name (used in section titles), this function
+            returns the correct path of the experiment. 
+        """
         exps = []
         for dp, dn, df in os.walk(path):
             if 'experiment.cfg' in df:
@@ -284,7 +302,7 @@ class ExperimentSuite(object):
                 bar += "="*int(prog/4)
                 bar += " "*int(25-prog/4)
                 bar += "]"
-                print '%50s %s %i%%'%(d,bar,prog)
+                print '%70s %s %i%%'%(d,bar,prog)
                 continue
             
             print '%16s %s'%('experiment', d)
@@ -320,11 +338,62 @@ class ExperimentSuite(object):
                 for p in [p for p in params if p not in ('repetitions', 'iterations', 'path', 'name')]:
                     print '%16s %s'%(p, params[p])
                     
-            print             
+            print                     
+        
+    def expand_param_list(self, paramlist):
+        """ expands the parameters list according to one of these schemes:
+            grid: every list item is combined with every other list item
+            list: every n-th list item of parameter lists are combined 
+        """
+        # for one single experiment, still wrap it in list
+        if type(paramlist) == types.DictType:
+            paramlist = [paramlist]
+        
+        # get all options that are iteratable and build all combinations (grid) or tuples (list)
+        iparamlist = []
+        for params in paramlist:
+            iterparams = [p for p in params if hasattr(params[p], '__iter__')]
+            if len(iterparams) > 0:
+                # write intermediate config file
+                self.mkdir(os.path.join(params['path'], params['name']))
+                self.write_config_file(params, os.path.join(params['path'], params['name']))
+
+                # create sub experiments (check if grid or list is requested)
+                if 'experiment' in params and params['experiment'] == 'list':
+                    iterfunc = itertools.izip
+                else:
+                    iterfunc = itertools.product
+
+                for il in iterfunc(*[params[p] for p in iterparams]):
+                    par = params.copy()
+                    converted = str(zip(iterparams, map(convert_param_to_dirname, il)))
+                    par['name'] = par['name'] + '/' + re.sub("[' \[\],()]+", '_', converted)[1:-1]
+                    print par['name']
+                    for i, ip in enumerate(iterparams):
+                        par[ip] = il[i]
+                    iparamlist.append(par)
+            else:
+                iparamlist.append(params)
+        return iparamlist
 
     
+    def create_dir(self, params, delete=False):
+        """ creates a subdirectory for the experiment, and deletes existing
+            files, if the delete flag is true. then writes the current
+            experiment.cfg file in the folder.
+        """
+        # create experiment path and subdir
+        fullpath = os.path.join(params['path'], params['name'])
+        self.mkdir(fullpath)
+
+        # delete old histories if --del flag is active
+        if delete:
+            os.system('rm %s/*' % fullpath)
+     
+        # write a config file for this single exp. in the folder
+        self.write_config_file(params, fullpath)
         
-    
+        
     def start(self):
         """ starts the experiments as given in the config file. """     
 
@@ -340,45 +409,25 @@ class ExperimentSuite(object):
             params = self.items_to_params(self.cfgparser.items(exp))
             params['name'] = exp
             paramlist.append(params)
-        
-        # get all options that are iteratable and build all combinations (grid)
-        iparamlist = []
-        for params in paramlist:
-            iterparams = [p for p in params if hasattr(params[p], '__iter__')]
-            if len(iterparams) > 0:
-                # write intermediate config file
-                self.mkdir(os.path.join(params['path'], params['name']))
-                self.write_config_file(params, os.path.join(params['path'], params['name']))
                 
-                # create sub experiments (check if grid or list is requested)
-                if 'experiment' in params and params['experiment'] == 'list':
-                    iterfunc = itertools.izip
-                else:
-                    iterfunc = itertools.product
-                    
-                for il in iterfunc(*[params[p] for p in iterparams]):
-                    par = params.copy()
-                    par['name'] = par['name'] + '/' + re.sub("[' \[\],()]", '', str(zip(iterparams,[re.sub("0+$", '0', '%f'%i) for i in il])))
-                    for i, ip in enumerate(iterparams):
-                        par[ip] = il[i]
-                    iparamlist.append(par)
-            else:
-                iparamlist.append(params)
+        self.do_experiment(paramlist)
+                
+    
+    def do_experiment(self, params):
+        """ runs one experiment programatically and returns.
+            params: either parameter dictionary (for one single experiment) or a list of parameter
+            dictionaries (for several experiments).
+        """
+        paramlist = self.expand_param_list(params)
         
-        paramlist = iparamlist
-
         # create directories, write config files
         for pl in paramlist:
-            # create experiment path and subdir
-            fullpath = os.path.join(pl['path'], pl['name'])
-            self.mkdir(fullpath)
-
-            # delete old histories if --del flag is active
-            if self.options.delete:
-                os.system('rm %s/*' % fullpath)
-         
-            # write a config file for this single exp. in the folder
-            self.write_config_file(pl, fullpath)
+            # check for required param keys
+            if ('name' in pl) and ('iterations' in pl) and ('repetitions' in pl) and ('path' in pl):
+               self.create_dir(pl, self.options.delete)
+            else:
+                print 'Error: parameter set does not contain all required keys: name, iterations, repetitions, path'
+                return False
             
         # create experiment list 
         explist = []
@@ -395,8 +444,10 @@ class ExperimentSuite(object):
             # create worker processes    
             pool = Pool(processes=self.options.ncores)
             pool.map(mp_runrep, explist)
-                
         
+        return True        
+        
+       
     def run_rep(self, params, rep):
         """ run a single repetition including directory creation, log files, etc. """
         name = params['name']
