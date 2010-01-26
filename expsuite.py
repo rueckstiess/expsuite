@@ -21,7 +21,7 @@
 from ConfigParser import ConfigParser
 from multiprocessing import Process, Pool, cpu_count
 from numpy import *
-import os, sys, time, itertools, re, curses, optparse
+import os, sys, time, itertools, re, optparse
 
 def mp_runrep(args):
     return ExperimentSuite.run_rep(*args)
@@ -38,26 +38,6 @@ def progress(params, rep):
     else: 
         return 0
 
-def observe(paramlist):
-    pad = curses.newpad(60, 90) 
-    namelength = max([len(p['name']) for p in paramlist]) + 4
-    
-    while(True):
-        for i, p in enumerate(paramlist):
-            row = sum([pl['repetitions'] for pl in paramlist[:i]]) + i
-            for r in range(p['repetitions']):
-               prog = min(100, progress(p, r))
-               pad.move(row, namelength)
-               pad.clrtoeol()
-               pad.addstr(row, 0, '%s %i'%(p['name'], r))
-               pad.addstr(row, namelength, '|')
-               pad.addstr(row, namelength + 50, '|')
-               pad.addstr(row, namelength, '|'*(prog//2))
-               pad.addstr(row, namelength + 53, '%3i%%'%prog)
-               row += 1
-               
-        pad.refresh(0,0, 0,0, 20,90)
-        time.sleep(1)
 
 class ExperimentSuite(object):
     
@@ -80,15 +60,15 @@ class ExperimentSuite(object):
         optparser.add_option('-d', '--del',
             action='store_true', dest='delete', default=False, 
             help="delete experiment folder if it exists")
-        optparser.add_option('-p', '--progress',
-            action='store_true', dest='progress', default=False, 
-            help="observe progress of the experiments interactively")
         optparser.add_option('-b', '--browse',
             action='store_true', dest='browse', default=False, 
             help="browse experiments in config file.")      
         optparser.add_option('-B', '--Browse',
             action='store_true', dest='browse_big', default=False, 
             help="browse experiments in config file, more verbose than -b")      
+        optparser.add_option('-p', '--progress',
+            action='store_true', dest='progress', default=False, 
+            help="like browse, but only shows name and progress bar")
 
         options, args = optparser.parse_args()
         self.options = options
@@ -281,7 +261,6 @@ class ExperimentSuite(object):
 
         return histories, params
         
-    
     def browse(self): 
         """ go through all subfolders (starting at '.') and return information
             about the existing experiments. if the -B option is given, all 
@@ -292,7 +271,22 @@ class ExperimentSuite(object):
             params = self.read_params(d)
             name = params['name']
             fullpath = os.path.join(params['path'], name)
-
+            
+            # calculate progress
+            prog = 0
+            for i in range(params['repetitions']):
+                prog += progress(params, i)
+            prog /= params['repetitions']
+            
+            # if progress flag is set, only show the progress bars
+            if self.options.progress:
+                bar = "["
+                bar += "="*int(prog/4)
+                bar += " "*int(25-prog/4)
+                bar += "]"
+                print '%50s %s %i%%'%(d,bar,prog)
+                continue
+            
             print '%16s %s'%('experiment', d)
                            
             try:
@@ -319,11 +313,6 @@ class ExperimentSuite(object):
             for k in ['repetitions', 'iterations']:
                 print '%16s %s'%(k, params[k])   
             
-            prog = 0
-            for i in range(params['repetitions']):
-                prog += progress(params, i)
-            prog /= params['repetitions']
-            
             print '%16s %i%%'%('progress', prog)
             
             if self.options.browse_big:
@@ -339,9 +328,9 @@ class ExperimentSuite(object):
     def start(self):
         """ starts the experiments as given in the config file. """     
 
-        # if -b or -B option is set, only show information, don't
+        # if -b, -B or -p option is set, only show information, don't
         # start the experiments
-        if self.options.browse or self.options.browse_big:
+        if self.options.browse or self.options.browse_big or self.options.progress:
             self.browse()
             raise SystemExit
         
@@ -397,17 +386,7 @@ class ExperimentSuite(object):
         # expand paramlist for all repetitions and add self and rep number
         for p in paramlist:
             explist.extend(zip( [self]*p['repetitions'], [p]*p['repetitions'], xrange(p['repetitions']) ))
-        
-        if self.options.progress:
-            # init ncurses
-            stdscr = curses.initscr()
-            curses.noecho()
-            curses.cbreak()
-            stdscr.keypad(1)
-        
-            p = Process(target=observe, args=(paramlist,))
-            p.start()
-        
+                
         # if only 1 process is required call each experiment seperately (no worker pool)
         if self.options.ncores == 1:
             for e in explist:
@@ -416,15 +395,7 @@ class ExperimentSuite(object):
             # create worker processes    
             pool = Pool(processes=self.options.ncores)
             pool.map(mp_runrep, explist)
-        
-        if self.options.progress:
-            # finalize ncurses
-            p.terminate()
-            curses.nocbreak()
-            stdscr.keypad(0)
-            curses.echo()
-            curses.endwin()
-        
+                
         
     def run_rep(self, params, rep):
         """ run a single repetition including directory creation, log files, etc. """
