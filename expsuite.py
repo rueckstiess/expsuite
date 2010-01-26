@@ -368,7 +368,6 @@ class ExperimentSuite(object):
                     par = params.copy()
                     converted = str(zip(iterparams, map(convert_param_to_dirname, il)))
                     par['name'] = par['name'] + '/' + re.sub("[' \[\],()]+", '_', converted)[1:-1]
-                    print par['name']
                     for i, ip in enumerate(iterparams):
                         par[ip] = il[i]
                     iparamlist.append(par)
