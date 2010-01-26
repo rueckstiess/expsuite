@@ -494,5 +494,5 @@ class ExperimentSuite(object):
 if __name__ == '__main__':
     es = ExperimentSuite()
     es.start()
-    print es.get_values_fix_params('test1', 0, 'iteration', 'last', alpha=1.0)[0]
+    print es.get_values_fix_params('./results/experiment2', 0, 'iteration', 'last', alpha=1.0)[0]
     print 'suite done.'
