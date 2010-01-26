@@ -254,11 +254,11 @@ class ExperimentSuite(object):
     def get_values_fix_params(self, exp, rep, tag, which='last', **kwargs):
         """ this function uses get_value(..) but returns all values where the
             subexperiments match the additional kwargs arguments. if alpha=1.0,
-            beta = 0.01 is given, then only those experiment values are returned,
+            beta=0.01 is given, then only those experiment values are returned,
             as a list.
         """ 
         subexps = self.get_exps(exp)[1:]
-        tagvalues = [re.sub("0+$", '0', '%s%f'%(k, kwargs[k])) for k in kwargs]
+        tagvalues = ['%s%s'%(k, convert_param_to_dirname(kwargs[k])) for k in kwargs]
         
         values = [self.get_value(se, rep, tag, which) for se in subexps if all(map(lambda tv: tv in se, tagvalues))]
         params = [self.read_params(se) for se in subexps if all(map(lambda tv: tv in se, tagvalues))]
@@ -367,7 +367,7 @@ class ExperimentSuite(object):
                 for il in iterfunc(*[params[p] for p in iterparams]):
                     par = params.copy()
                     converted = str(zip(iterparams, map(convert_param_to_dirname, il)))
-                    par['name'] = par['name'] + '/' + re.sub("[' \[\],()]+", '_', converted)[1:-1]
+                    par['name'] = par['name'] + '/' + re.sub("[' \[\],()]", '', converted)
                     for i, ip in enumerate(iterparams):
                         par[ip] = il[i]
                     iparamlist.append(par)
@@ -515,5 +515,5 @@ class ExperimentSuite(object):
 if __name__ == '__main__':
     es = ExperimentSuite()
     es.start()
-    print es.get_values_fix_params('./results/experiment2', 0, 'iteration', 'last', alpha=1.0)[0]
+    print es.get_values_fix_params('./results/experiment2', 0, 'iteration', 'last', alpha='yes')[0]
     print 'suite done.'
