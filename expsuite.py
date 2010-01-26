@@ -361,8 +361,15 @@ class ExperimentSuite(object):
                 self.mkdir(os.path.join(params['path'], params['name']))
                 self.write_config_file(params, os.path.join(params['path'], params['name']))
                 
-                # create sub experiments
-                for il in itertools.product(*[params[p] for p in iterparams]):
+                # create sub experiments (check if grid or list is requested)
+                if 'experiment' in params and params['experiment'] == 'list':
+                    iterfunc = itertools.izip
+                else:
+                    iterfunc = itertools.product
+                    
+                for il in iterfunc(*[params[p] for p in iterparams]):
+                    print il
+                    continue
                     par = params.copy()
                     par['name'] = par['name'] + '/' + re.sub("[' \[\],()]", '', str(zip(iterparams,[re.sub("0+$", '0', '%f'%i) for i in il])))
                     for i, ip in enumerate(iterparams):
