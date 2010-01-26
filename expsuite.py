@@ -14,7 +14,7 @@
 # implement the restore_state and save_state method and make sure the 
 # restore_supported variable is set to True.
 #
-# Copyright 2009 - Thomas Rueckstiess
+# Copyright 2010 - Thomas Rueckstiess
 #
 #############################################################################
 
@@ -62,10 +62,10 @@ class ExperimentSuite(object):
             help="delete experiment folder if it exists")
         optparser.add_option('-b', '--browse',
             action='store_true', dest='browse', default=False, 
-            help="browse experiments in config file.")      
+            help="browse existing experiments.")      
         optparser.add_option('-B', '--Browse',
             action='store_true', dest='browse_big', default=False, 
-            help="browse experiments in config file, more verbose than -b")      
+            help="browse existing experiments, more verbose than -b")      
         optparser.add_option('-p', '--progress',
             action='store_true', dest='progress', default=False, 
             help="like browse, but only shows name and progress bar")
