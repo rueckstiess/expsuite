@@ -368,8 +368,6 @@ class ExperimentSuite(object):
                     iterfunc = itertools.product
                     
                 for il in iterfunc(*[params[p] for p in iterparams]):
-                    print il
-                    continue
                     par = params.copy()
                     par['name'] = par['name'] + '/' + re.sub("[' \[\],()]", '', str(zip(iterparams,[re.sub("0+$", '0', '%f'%i) for i in il])))
                     for i, ip in enumerate(iterparams):
