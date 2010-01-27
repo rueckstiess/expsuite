@@ -282,9 +282,6 @@ class ExperimentSuite(object):
 
         return histories, params
     
-    def get_base_experiment(self, subexp):
-        return subexp.split('/')[0]
-    
     def browse(self): 
         """ go through all subfolders (starting at '.') and return information
             about the existing experiments. if the -B option is given, all 
@@ -294,8 +291,7 @@ class ExperimentSuite(object):
         for d in self.get_exps('.'):
             params = self.read_params(d)
             name = params['name']
-            basename = self.get_base_experiment(name)
-            
+            basename = name.split('/')[0]
             # if -e option is used, only show requested experiments
             if self.options.experiments and basename not in self.options.experiments:
                 continue
