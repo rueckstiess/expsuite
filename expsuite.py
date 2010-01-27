@@ -413,7 +413,7 @@ class ExperimentSuite(object):
         # read main configuration file
         paramlist = []
         for exp in self.cfgparser.sections():
-            if self.options.experiments and exp in self.options.experiments:
+            if not self.options.experiments or exp in self.options.experiments:
                 params = self.items_to_params(self.cfgparser.items(exp))
                 params['name'] = exp
                 paramlist.append(params)
