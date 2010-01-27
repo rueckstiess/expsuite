@@ -281,7 +281,10 @@ class ExperimentSuite(object):
         params = [self.read_params(se) for se in subexps if all(map(lambda tv: tv in se, tagvalues))]
 
         return histories, params
-        
+    
+    def get_base_experiment(self, subexp):
+        return subexp.split('/')[0]
+    
     def browse(self): 
         """ go through all subfolders (starting at '.') and return information
             about the existing experiments. if the -B option is given, all 
@@ -291,6 +294,12 @@ class ExperimentSuite(object):
         for d in self.get_exps('.'):
             params = self.read_params(d)
             name = params['name']
+            basename = self.get_base_experiment(name)
+            
+            # if -e option is used, only show requested experiments
+            if self.options.experiments and basename not in self.options.experiments:
+                continue
+                
             fullpath = os.path.join(params['path'], name)
             
             # calculate progress
@@ -305,7 +314,7 @@ class ExperimentSuite(object):
                 bar += "="*int(prog/4)
                 bar += " "*int(25-prog/4)
                 bar += "]"
-                print '%70s %s %i%%'%(d,bar,prog)
+                print '%i%% %27s %s'%(prog,bar,d)
                 continue
             
             print '%16s %s'%('experiment', d)
