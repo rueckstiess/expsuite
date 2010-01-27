@@ -69,6 +69,9 @@ class ExperimentSuite(object):
         optparser.add_option('-d', '--del',
             action='store_true', dest='delete', default=False, 
             help="delete experiment folder if it exists")
+        optparser.add_option('-e', '--experiment',
+            action='append', dest='experiments', type='string',
+            help="run only selected experiments, by default run all experiments in config file.")
         optparser.add_option('-b', '--browse',
             action='store_true', dest='browse', default=False, 
             help="browse existing experiments.")      
@@ -405,9 +408,10 @@ class ExperimentSuite(object):
         # read main configuration file
         paramlist = []
         for exp in self.cfgparser.sections():
-            params = self.items_to_params(self.cfgparser.items(exp))
-            params['name'] = exp
-            paramlist.append(params)
+            if self.options.experiments and exp in self.options.experiments:
+                params = self.items_to_params(self.cfgparser.items(exp))
+                params['name'] = exp
+                paramlist.append(params)
                 
         self.do_experiment(paramlist)
                 
