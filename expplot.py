@@ -43,6 +43,10 @@ def parse_opt():
     # optparser.add_option('-B', '--Browse',
     #     action='store_true', dest='browse_big', default=False, 
     #     help="browse experiments in config file, more verbose than -b")      
+    
+    optparser.add_option('-e', '--experiment',
+        action='append', dest='experiments', type='string', 
+        help="experiment to include in plot, default is all experiments.")      
 
     options, args = optparser.parse_args()
     return options, args
@@ -59,6 +63,9 @@ if __name__ == '__main__':
         path = args[0]
 
     experiments = suite.get_exps(path)
+    print options
+    if options.experiments:
+        experiments = [e for e in experiments if e.split('/')[2] in options.experiments]
     
     shape = ceil(sqrt(len(experiments)))
     hgraphs = {}
