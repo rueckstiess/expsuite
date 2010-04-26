@@ -59,11 +59,11 @@ if __name__ == '__main__':
     
     # get all experiments
     path = '.'
+    tag = 'error'
     if len(args) > 0:
-        path = args[0]
+        tag = args[0]
 
     experiments = suite.get_exps(path)
-    print options
     if options.experiments:
         experiments = [e for e in experiments if e.split('/')[2] in options.experiments]
     
@@ -80,7 +80,7 @@ if __name__ == '__main__':
             params = suite.read_params(exp)
             
             for r,p in enumerate(hgraphs[exp]):
-                h = suite.get_history(exp, r, 'return')
+                h = suite.get_history(exp, r, tag)
                 if h != []:
                     if len(h) > len(p.get_ydata()):
                         # new data point, draw line in red
