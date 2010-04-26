@@ -282,6 +282,44 @@ class ExperimentSuite(object):
 
         return histories, params
     
+    def get_histories_over_repetitions(self, exp, tags, aggregate):
+        """ this function gets all histories of all repetitions using get_history() on the given
+            tag(s), and then applies the function given by 'aggregate' to all corresponding values
+            in each history over all iterations. Typical aggregate functions could be 'mean' or
+            'max'.
+        """
+        params = self.read_params(exp)
+        
+        # explicitly make tags list in case of 'all'
+        if tags == 'all':
+            tags = self.get_history(exp, 0, 'all').keys()
+        
+        # make list of tags if it is just a string
+        if not hasattr(tags, '__iter__'):
+            tags = [tags]
+         
+        results = {}
+        for tag in tags:
+            # get all histories
+            histories = zeros((params['repetitions'], params['iterations']))
+            for i in range(params['repetitions']):
+                histories[i, :] = self.get_history(exp, i, tag)
+        
+            # calculate result from each column with aggregation function
+            aggregated = zeros(params['iterations'])
+            for i in range(params['iterations']):
+                aggregated[i] = aggregate(histories[:, i])
+            
+            # if only one tag is requested, return list immediately, otherwise append to dictionary
+            if len(tags) == 1:
+                return aggregated
+            else:
+                results[tag] = aggregated
+            
+        return results
+        
+            
+    
     def browse(self): 
         """ go through all subfolders (starting at '.') and return information
             about the existing experiments. if the -B option is given, all 
