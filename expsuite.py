@@ -348,7 +348,7 @@ class ExperimentSuite(object):
                 bar += "="*int(prog/4)
                 bar += " "*int(25-prog/4)
                 bar += "]"
-                print '%i%% %27s %s'%(prog,bar,d)
+                print '%3i%% %27s %s'%(prog,bar,d)
                 continue
             
             print '%16s %s'%('experiment', d)
