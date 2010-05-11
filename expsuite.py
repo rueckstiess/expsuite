@@ -309,14 +309,14 @@ class ExperimentSuite(object):
                     h = self.get_history(exp, i, tag)
                     if len(h) > params['iterations']:
                         # if history too long, crop it 
+                        print('warning: history %i has length %i (expected: %i). it had to be truncated.'%(i, len(h), params['iterations']))
                         h = h[:params['iterations']]
                         histories[i,:] = h
-                        print('warning: history %i has length %i (expected: %i). it had to be truncated.'%(i, len(h), params['iterations']))
                     elif len(h) < params['iterations']:
                         # if history too short, crop everything else
+                        print('warning: history %i has length %i (expected: %i). all other histories had to be truncated.'%(i, len(h), params['iterations']))
                         params['iterations'] = len(h)
                         histories = histories[:,:params['iterations']]
-                        print('warning: history %i has length %i (expected: %i). all other histories had to be truncated.'%(i, len(h), params['iterations']))
         
             # calculate result from each column with aggregation function
             aggregated = zeros(params['iterations'])
