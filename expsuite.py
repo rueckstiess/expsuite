@@ -302,6 +302,7 @@ class ExperimentSuite(object):
         for tag in tags:
             # get all histories
             histories = zeros((params['repetitions'], params['iterations']))
+            skipped = []
             for i in range(params['repetitions']):
                 try:
                     histories[i, :] = self.get_history(exp, i, tag)
@@ -310,8 +311,7 @@ class ExperimentSuite(object):
                     if len(h) == 0:
                         # history not existent, skip it
                         print('warning: history %i has length 0 (expected: %i). it will be skipped.'%(i, params['iterations'])) 
-                        histories = histories[:-1, :]
-                        params['repetitions'] -= 1                       
+                        skipped.append(i)
                     elif len(h) > params['iterations']:
                         # if history too long, crop it 
                         print('warning: history %i has length %i (expected: %i). it had to be truncated.'%(i, len(h), params['iterations']))
@@ -322,7 +322,11 @@ class ExperimentSuite(object):
                         print('warning: history %i has length %i (expected: %i). all other histories had to be truncated.'%(i, len(h), params['iterations']))
                         params['iterations'] = len(h)
                         histories = histories[:,:params['iterations']]
-        
+            
+            # remove all rows that have been skipped
+            delete(histories, skipped, axis=0)
+            params['repetitions'] -= len(skipped)
+                
             # calculate result from each column with aggregation function
             aggregated = zeros(params['iterations'])
             for i in range(params['iterations']):
