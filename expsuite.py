@@ -324,8 +324,13 @@ class ExperimentSuite(object):
                         histories = histories[:,:params['iterations']]
             
             # remove all rows that have been skipped
+            print histories.take(skipped, axis=0)
+            
             histories = delete(histories, skipped, axis=0)
             params['repetitions'] -= len(skipped)
+            
+            print histories.take(skipped, axis=0)
+            
                 
             # calculate result from each column with aggregation function
             aggregated = zeros(params['iterations'])
