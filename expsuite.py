@@ -314,23 +314,18 @@ class ExperimentSuite(object):
                         skipped.append(i)
                     elif len(h) > params['iterations']:
                         # if history too long, crop it 
-                        print('warning: history %i has length %i (expected: %i). it had to be truncated.'%(i, len(h), params['iterations']))
+                        print('warning: history %i has length %i (expected: %i). it will be truncated.'%(i, len(h), params['iterations']))
                         h = h[:params['iterations']]
                         histories[i,:] = h
                     elif len(h) < params['iterations']:
                         # if history too short, crop everything else
-                        print('warning: history %i has length %i (expected: %i). all other histories had to be truncated.'%(i, len(h), params['iterations']))
+                        print('warning: history %i has length %i (expected: %i). all other histories will be truncated.'%(i, len(h), params['iterations']))
                         params['iterations'] = len(h)
                         histories = histories[:,:params['iterations']]
             
             # remove all rows that have been skipped
-            print "skipped rows", skipped
-            print histories.take(skipped, axis=0)
-            print "before", histories.shape
             histories = delete(histories, skipped, axis=0)
             params['repetitions'] -= len(skipped)
-            
-            print "after", histories.shape
                 
             # calculate result from each column with aggregation function
             aggregated = zeros(params['iterations'])
@@ -339,7 +334,7 @@ class ExperimentSuite(object):
             
             # if only one tag is requested, return list immediately, otherwise append to dictionary
             if len(tags) == 1:
-                return aggregated, histories
+                return aggregated
             else:
                 results[tag] = aggregated
             
