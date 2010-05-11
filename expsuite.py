@@ -303,7 +303,20 @@ class ExperimentSuite(object):
             # get all histories
             histories = zeros((params['repetitions'], params['iterations']))
             for i in range(params['repetitions']):
-                histories[i, :] = self.get_history(exp, i, tag)
+                try:
+                    histories[i, :] = self.get_history(exp, i, tag)
+                except ValueError:
+                    h = self.get_history(exp, i, tag)
+                    if len(h) > params['iterations']:
+                        # if history too long, crop it 
+                        h = h[:params['iterations']]
+                        histories[i,:] = h
+                        print('warning: history %i was too long and had to be truncated'%i)
+                    elif len(h) < params['iterations']:
+                        # if history too short, crop everything else
+                        params['iterations'] = len(h)
+                        histories = histories[:,:params['iterations']]
+                        print('warning: history %i was too short and all other histories had to be truncated')
         
             # calculate result from each column with aggregation function
             aggregated = zeros(params['iterations'])
