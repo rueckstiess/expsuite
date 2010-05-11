@@ -324,13 +324,13 @@ class ExperimentSuite(object):
                         histories = histories[:,:params['iterations']]
             
             # remove all rows that have been skipped
+            print "skipped rows", skipped
             print histories.take(skipped, axis=0)
-            
+            print "before", histories.shape
             histories = delete(histories, skipped, axis=0)
             params['repetitions'] -= len(skipped)
             
-            print histories.take(skipped, axis=0)
-            
+            print "after", histories.shape
                 
             # calculate result from each column with aggregation function
             aggregated = zeros(params['iterations'])
@@ -339,7 +339,7 @@ class ExperimentSuite(object):
             
             # if only one tag is requested, return list immediately, otherwise append to dictionary
             if len(tags) == 1:
-                return aggregated
+                return aggregated, histories
             else:
                 results[tag] = aggregated
             
