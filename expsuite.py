@@ -307,7 +307,12 @@ class ExperimentSuite(object):
                     histories[i, :] = self.get_history(exp, i, tag)
                 except ValueError:
                     h = self.get_history(exp, i, tag)
-                    if len(h) > params['iterations']:
+                    if len(h) == 0:
+                        # history not existent, skip it
+                        print('warning: history %i has length 0 (expected: %i). it will be skipped.'%(i, params['iterations'])) 
+                        histories = histories[:-1, :]
+                        params['repetitions'] -= 1                       
+                    elif len(h) > params['iterations']:
                         # if history too long, crop it 
                         print('warning: history %i has length %i (expected: %i). it had to be truncated.'%(i, len(h), params['iterations']))
                         h = h[:params['iterations']]
