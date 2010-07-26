@@ -54,8 +54,8 @@ class ExperimentSuite(object):
         self.parse_opt()
         self.parse_cfg()
         
-        # change this in subclass, if you don't support restoring state on iteration level
-        self.restore_supported = True
+        # change this in subclass, if you support restoring state on iteration level
+        self.restore_supported = False
     
     def parse_opt(self):
         """ parses the command line options for different settings. """
