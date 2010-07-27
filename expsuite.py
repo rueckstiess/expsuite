@@ -89,7 +89,9 @@ class ExperimentSuite(object):
     def parse_cfg(self):
         """ parses the given config file for experiments. """
         self.cfgparser = ConfigParser()
-        self.cfgparser.read(self.options.config)
+        if not self.cfgparser.read(self.options.config):
+            raise SystemExit('config file %s not found.'%self.options.config) 
+            
     
     def mkdir(self, path):
         """ create a directory if it does not exist. """
