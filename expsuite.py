@@ -118,8 +118,10 @@ class ExperimentSuite(object):
         for t,v in items:       
             try:
                 # try to evaluate parameter (float, int, list)
-                # print dfgp.get(exp, o)
-                params[t] = eval(v)
+                if v in ['grid', 'list']:
+                    params[t] = v
+                else:
+                    params[t] = eval(v)
                 if isinstance(params[t], ndarray):
                     params[t] = params[t].tolist()
             except (NameError, SyntaxError):
