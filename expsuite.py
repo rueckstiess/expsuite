@@ -132,7 +132,7 @@ class ExperimentSuite(object):
                 params[t] = v
         return params        
            
-    def read_params(self, exp, cfgname='experiment.cfg'):
+    def get_params(self, exp, cfgname='experiment.cfg'):
         """ reads the parameters of the experiment (= path) given.
         """
         cfgp = ConfigParser()
@@ -176,7 +176,7 @@ class ExperimentSuite(object):
             strings or 'all', history is returned as a dictionary of lists
             of values.
         """
-        params = self.read_params(exp)
+        params = self.get_params(exp)
            
         if params == None:
             raise SystemExit('experiment %s not found.'%exp)         
@@ -271,7 +271,7 @@ class ExperimentSuite(object):
         tagvalues = ['%s%s'%(k, convert_param_to_dirname(kwargs[k])) for k in kwargs]
         
         values = [self.get_value(se, rep, tag, which) for se in subexps if all(map(lambda tv: tv in se, tagvalues))]
-        params = [self.read_params(se) for se in subexps if all(map(lambda tv: tv in se, tagvalues))]
+        params = [self.get_params(se) for se in subexps if all(map(lambda tv: tv in se, tagvalues))]
         
         return values, params
 
@@ -285,7 +285,7 @@ class ExperimentSuite(object):
         tagvalues = [re.sub("0+$", '0', '%s%f'%(k, kwargs[k])) for k in kwargs]
 
         histories = [self.get_history(se, rep, tag) for se in subexps if all(map(lambda tv: tv in se, tagvalues))]
-        params = [self.read_params(se) for se in subexps if all(map(lambda tv: tv in se, tagvalues))]
+        params = [self.get_params(se) for se in subexps if all(map(lambda tv: tv in se, tagvalues))]
 
         return histories, params
     
@@ -295,7 +295,7 @@ class ExperimentSuite(object):
             in each history over all iterations. Typical aggregate functions could be 'mean' or
             'max'.
         """
-        params = self.read_params(exp)
+        params = self.get_params(exp)
         
         # explicitly make tags list in case of 'all'
         if tags == 'all':
@@ -356,7 +356,7 @@ class ExperimentSuite(object):
             this function does *not* execute any experiments.
         """
         for d in self.get_exps('.'):
-            params = self.read_params(d)
+            params = self.get_params(d)
             name = params['name']
             basename = name.split('/')[0]
             # if -e option is used, only show requested experiments

@@ -10,7 +10,7 @@ def creategraphs():
         plt.subplot(shape, shape, i+1)
 
         hgraphs[exp] = []
-        params = suite.read_params(exp)
+        params = suite.get_params(exp)
             
         for r in range(params['repetitions']):
             h = suite.get_history(exp, r, 'return')
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     creategraphs()
     while True:
         for i, exp in enumerate(experiments):
-            params = suite.read_params(exp)
+            params = suite.get_params(exp)
             
             for r,p in enumerate(hgraphs[exp]):
                 h = suite.get_history(exp, r, tag)
