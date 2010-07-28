@@ -142,7 +142,7 @@ class ExperimentSuite(object):
         params['name'] = section
         return params
 
-    def find_exp(self, name, path='.'):
+    def get_exp(self, name, path='.'):
         """ given an experiment name (used in section titles), this function
             returns the correct path of the experiment. 
         """
