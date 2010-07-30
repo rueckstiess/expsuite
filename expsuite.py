@@ -427,7 +427,8 @@ class ExperimentSuite(object):
         # get all options that are iteratable and build all combinations (grid) or tuples (list)
         iparamlist = []
         for params in paramlist:
-            iterparams = [p for p in params if hasattr(params[p], '__iter__')]
+            if not ('experiment' in params and params['experiment'] == 'single'):
+                iterparams = [p for p in params if hasattr(params[p], '__iter__')]
             if len(iterparams) > 0:
                 # write intermediate config file
                 self.mkdir(os.path.join(params['path'], params['name']))
@@ -436,8 +437,10 @@ class ExperimentSuite(object):
                 # create sub experiments (check if grid or list is requested)
                 if 'experiment' in params and params['experiment'] == 'list':
                     iterfunc = itertools.izip
-                else:
+                elif ('experiment' not in params) or ('experiment' in params and params['experiment'] == 'grid'):
                     iterfunc = itertools.product
+                else:
+                    raise SystemExit("unexpected value '%s' for parameter 'experiment'. Use 'grid', 'list' or 'single'."%params['experiment'])
 
                 for il in iterfunc(*[params[p] for p in iterparams]):
                     par = params.copy()
