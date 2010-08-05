@@ -3,16 +3,18 @@
 
 #############################################################################
 #
-# ExperimentSuite
+# PyExperimentSuite
 #
-# Derive your experiment from the ExperimentSuite, fill in the reset() and
+# Derive your experiment from the PyExperimentSuite, fill in the reset() and
 # iterate() methods, and define your defaults and experiments variables
 # in a config file.
-# ExperimentSuite will create directories, run the experiments and store the 
+# PyExperimentSuite will create directories, run the experiments and store the 
 # logged data. An aborted experiment can be resumed at any time. If you want
 # to resume it on iteration level (instead of repetition level) you need to
 # implement the restore_state and save_state method and make sure the 
 # restore_supported variable is set to True.
+#
+# For more information, consult the documentation.pdf file in the same folder.
 #
 # Copyright 2010 - Thomas Rueckstiess
 #
@@ -25,7 +27,7 @@ import os, sys, time, itertools, re, optparse, types
 
 def mp_runrep(args):
     """ Helper function to allow multiprocessing support. """
-    return ExperimentSuite.run_rep(*args)
+    return PyExperimentSuite.run_rep(*args)
 
 def progress(params, rep):
     """ Helper function to calculate the progress made on one experiment. """
@@ -48,7 +50,7 @@ def convert_param_to_dirname(param):
         return re.sub("0+$", '0', '%f'%param)
 
 
-class ExperimentSuite(object):
+class PyExperimentSuite(object):
     
     def __init__(self):
         self.parse_opt()
@@ -605,7 +607,7 @@ class ExperimentSuite(object):
         
     
 if __name__ == '__main__':
-    es = ExperimentSuite()
+    es = PyExperimentSuite()
     es.start()
     print es.get_values_fix_params('./results/experiment2', 0, 'iteration', 'last', alpha='yes')[0]
     print 'suite done.'

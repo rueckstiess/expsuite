@@ -1,4 +1,4 @@
-from expsuite import ExperimentSuite
+from expsuite import PyExperimentSuite
 from matplotlib import pyplot as plt
 from numpy import *
 import time
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     
     options, args = parse_opt()
     
-    suite = ExperimentSuite()
+    suite = PyExperimentSuite()
     
     # get all experiments
     path = '.'
