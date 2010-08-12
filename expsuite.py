@@ -52,15 +52,15 @@ def convert_param_to_dirname(param):
 
 class PyExperimentSuite(object):
     
+    # change this in subclass, if you support restoring state on iteration level
+    restore_supported = False
+    
     def __init__(self):
         self.parse_opt()
         self.parse_cfg()
         
         # list of keys, that had to be renamed because they contained spaces
         self.key_warning_issued = []
-        
-        # change this in subclass, if you support restoring state on iteration level
-        self.restore_supported = False
     
     def parse_opt(self):
         """ parses the command line options for different settings. """
