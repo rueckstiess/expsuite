@@ -238,6 +238,11 @@ class PyExperimentSuite(object):
                    #: (int) returns the value at that index
         """
         history = self.get_history(exp, rep, tags)
+        
+        # empty histories always return None
+        if len(history) == 0:
+            return None
+            
         # distinguish dictionary (several tags) from list
         if type(history) == dict:
             for h in history:
