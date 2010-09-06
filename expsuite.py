@@ -274,7 +274,7 @@ class PyExperimentSuite(object):
             beta=0.01 is given, then only those experiment values are returned,
             as a list.
         """ 
-        subexps = self.get_exps(exp)[1:]
+        subexps = self.get_exps(exp)
         tagvalues = ['%s%s'%(k, convert_param_to_dirname(kwargs[k])) for k in kwargs]
         
         values = [self.get_value(se, rep, tag, which) for se in subexps if all(map(lambda tv: tv in se, tagvalues))]
@@ -288,7 +288,7 @@ class PyExperimentSuite(object):
             beta = 0.01 is given, then only those experiment histories are returned,
             as a list.
         """ 
-        subexps = self.get_exps(exp)[1:]
+        subexps = self.get_exps(exp)
         tagvalues = [re.sub("0+$", '0', '%s%f'%(k, kwargs[k])) for k in kwargs]
 
         histories = [self.get_history(se, rep, tag) for se in subexps if all(map(lambda tv: tv in se, tagvalues))]
