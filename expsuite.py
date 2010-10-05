@@ -587,29 +587,24 @@ class PyExperimentSuite(object):
     
     
     def reset(self, params, rep):
-        """ needs to be implemented by subclass """
+        """ needs to be implemented by subclass. """
         pass
     
     def iterate(self, params, rep, n):
-        """ needs to be implemented by subclass """
-        ret = {'iteration':n, 'rep':rep}
+        """ needs to be implemented by subclass. """
+        ret = {'iteration':n, 'repetition':rep}
         return ret
     
     def save_state(self, params, rep, n):
+        """ optionally can be implemented by subclass. """
         pass
         
     def restore_state(self, params, rep, n):
         """ if the experiment supports restarting within a repetition
-            (on iteration level), return True and load necessary
-            stored state in this function. Otherwise, restarting will
-            be done on repetition level, deleting all unfinished
-            repetitions and restarting the experiments.
+            (on iteration level), load necessary stored state in this 
+            function. Otherwise, restarting will be done on repetition 
+            level, deleting all unfinished repetitions and restarting 
+            the experiments.
         """
         pass
         
-    
-if __name__ == '__main__':
-    es = PyExperimentSuite()
-    es.start()
-    print es.get_values_fix_params('./results/experiment2', 0, 'iteration', 'last', alpha='yes')[0]
-    print 'suite done.'
