@@ -11,7 +11,9 @@
 # implement the restore_state and save_state method and make sure the 
 # restore_supported variable is set to True.
 #
-# For more information, consult the documentation.pdf file in the same folder.
+# For more information, consult the included documentation.pdf file.
+#
+# Licensed under the modified BSD License. See LICENSE file in same folder.
 #
 # Copyright 2010 - Thomas Rueckstiess
 #
