@@ -433,30 +433,33 @@ class PyExperimentSuite(object):
         # get all options that are iteratable and build all combinations (grid) or tuples (list)
         iparamlist = []
         for params in paramlist:
-            if not ('experiment' in params and params['experiment'] == 'single'):
-                iterparams = [p for p in params if hasattr(params[p], '__iter__')]
-            if len(iterparams) > 0:
-                # write intermediate config file
-                self.mkdir(os.path.join(params['path'], params['name']))
-                self.write_config_file(params, os.path.join(params['path'], params['name']))
-
-                # create sub experiments (check if grid or list is requested)
-                if 'experiment' in params and params['experiment'] == 'list':
-                    iterfunc = itertools.izip
-                elif ('experiment' not in params) or ('experiment' in params and params['experiment'] == 'grid'):
-                    iterfunc = itertools.product
-                else:
-                    raise SystemExit("unexpected value '%s' for parameter 'experiment'. Use 'grid', 'list' or 'single'."%params['experiment'])
-
-                for il in iterfunc(*[params[p] for p in iterparams]):
-                    par = params.copy()
-                    converted = str(zip(iterparams, map(convert_param_to_dirname, il)))
-                    par['name'] = par['name'] + '/' + re.sub("[' \[\],()]", '', converted)
-                    for i, ip in enumerate(iterparams):
-                        par[ip] = il[i]
-                    iparamlist.append(par)
-            else:
+            if ('experiment' in params and params['experiment'] == 'single'):
                 iparamlist.append(params)
+            else:
+                iterparams = [p for p in params if hasattr(params[p], '__iter__')]
+                if len(iterparams) > 0:
+                    # write intermediate config file
+                    self.mkdir(os.path.join(params['path'], params['name']))
+                    self.write_config_file(params, os.path.join(params['path'], params['name']))
+
+                    # create sub experiments (check if grid or list is requested)
+                    if 'experiment' in params and params['experiment'] == 'list':
+                        iterfunc = itertools.izip
+                    elif ('experiment' not in params) or ('experiment' in params and params['experiment'] == 'grid'):
+                        iterfunc = itertools.product
+                    else:
+                        raise SystemExit("unexpected value '%s' for parameter 'experiment'. Use 'grid', 'list' or 'single'."%params['experiment'])
+
+                    for il in iterfunc(*[params[p] for p in iterparams]):
+                        par = params.copy()
+                        converted = str(zip(iterparams, map(convert_param_to_dirname, il)))
+                        par['name'] = par['name'] + '/' + re.sub("[' \[\],()]", '', converted)
+                        for i, ip in enumerate(iterparams):
+                            par[ip] = il[i]
+                        iparamlist.append(par)
+                else:
+                    iparamlist.append(params)
+
         return iparamlist
 
     
