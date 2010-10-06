@@ -103,6 +103,8 @@ class MySuite(PyExperimentSuite):
         """
         print '.',
         
+        # use self.train and self.test here for your experiment...
+        
         # return current repetition and iteration number and the 2 parameters
         ret = {'rep':rep, 'iter':n}
         return ret        
