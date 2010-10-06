@@ -26,6 +26,10 @@
 # crossvalidation() to your suite class and pass the dataset array in from
 # the reset() method, as shown here.
 #
+# For cross-validation experiments, the API retrieval function 
+# get_histories_over_repetitions() is well suited to calculate the mean
+# and variance over the repetitions. Section 6.8 in the documentation 
+# explains its usage.
 #
 # Copyright (c) 2010 - Thomas Rueckstiess
 #
