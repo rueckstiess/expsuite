@@ -1,6 +1,6 @@
 #############################################################################
 #
-# Example: Simple 
+# Example: Basic 
 # 
 # This example demonstrates the basic setup of the Python Experiment Suite.
 # Create a class and inherit from PyExperimentSuite. Then implement the two
@@ -31,7 +31,7 @@ from expsuite import PyExperimentSuite
 class MySuite(PyExperimentSuite):
     
     def reset(self, params, rep):
-        """ for this simple example, nothing needs to be loaded or initialized."""
+        """ for this basic example, nothing needs to be loaded or initialized."""
         pass
         
     def iterate(self, params, rep, n):
