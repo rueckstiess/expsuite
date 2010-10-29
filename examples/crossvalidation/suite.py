@@ -14,10 +14,10 @@
 # to initialize the random number generator. This guarantees the same
 # split into batches for a given dataset. Use the flag shuffle=True if
 # you want to randomize the dataset.
-# 
-# Run this script from the command line: python suite.py
-# 
-# The output shows, how the dataset (here an array of consecutive 
+#
+# Run this script from the command line on a single core: python suite.py -n1
+#
+# The output shows, how the dataset (here an array of consecutive
 # numbers up to 10) is split into training and testing sets for each
 # repetition. Change the repetitions number in the config file for
 # other splits.
