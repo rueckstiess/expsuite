@@ -224,6 +224,20 @@ class PyExperimentSuite(object):
         else:
             return results
     
+    
+    def get_history_tags(self, exp, rep=0):
+        """ returns all available tags (logging keys) of the given experiment 
+            repetition. 
+            
+            Note: Technically, each repetition could have different
+            tags, therefore the rep number can be passed in as parameter, 
+            even though usually all repetitions have the same tags. The default 
+            repetition is 0 and in most cases, can be omitted.
+        """
+        history = self.get_history(exp, rep, 'all')
+        return history.keys()
+    
+    
     def get_value(self, exp, rep, tags, which='last'):
         """ Like get_history(..) but returns only one single value rather
             than the whole list. 
