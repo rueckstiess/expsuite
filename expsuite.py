@@ -349,6 +349,7 @@ class PyExperimentSuite(object):
                         print('warning: history %i has length %i (expected: %i). all other histories will be truncated.'%(i, len(h), params['iterations']))
                         params['iterations'] = len(h)
                         histories = histories[:,:params['iterations']]
+                        histories[i, :] = h
             
             # remove all rows that have been skipped
             histories = delete(histories, skipped, axis=0)
