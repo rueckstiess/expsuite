@@ -604,6 +604,8 @@ class PyExperimentSuite(object):
             logfile.write(outstr + '\n')
             logfile.flush()
         logfile.close()
+
+        self.finalize(params, rep)
     
     
     def reset(self, params, rep):
@@ -614,6 +616,10 @@ class PyExperimentSuite(object):
         """ needs to be implemented by subclass. """
         ret = {'iteration':n, 'repetition':rep}
         return ret
+
+    def finalize(self, params, rep):
+        """ can be implemented by sublcass. """
+        pass
     
     def save_state(self, params, rep, n):
         """ optionally can be implemented by subclass. """
