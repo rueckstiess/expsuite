@@ -1,13 +1,13 @@
 #############################################################################
 #
-# Example: Random Numbers (random) 
-# 
+# Example: Random Numbers (random)
+#
 # This example demonstrates how to verify a a simple stochastic law,
 # namely that the sample mean of random numbers drawn from a normal dis-
 # tribution does converge to the actual mean of the distribution. We use
 # the random module of the numpy package and store the drawn numbers in
 # a numpy array.
-# 
+#
 # Furthermore, this example makes use of the optional restore support.
 # The restore_supported flag is set to True and the two functions
 # save_state() and restore_state() are implemented. If the experiment
@@ -33,43 +33,50 @@ from expsuite import PyExperimentSuite
 from numpy import *
 import os
 
+
 class MySuite(PyExperimentSuite):
-    
+
     restore_supported = True
-    
+
     def reset(self, params, rep):
         # initialize array
-        self.numbers = zeros(params['iterations'])
-        
+        self.numbers = zeros(params["iterations"])
+
         # seed random number generator
-        random.seed(params['seed'])
-        
+        random.seed(params["seed"])
+
     def iterate(self, params, rep, n):
         # draw normally distributed random number
-        self.numbers[n] = random.normal(params['mean'], params['std'])
-        
+        self.numbers[n] = random.normal(params["mean"], params["std"])
+
         # calculate sample mean and offset
-        samplemean = mean(self.numbers[:n+1])
-        offset = abs(params['mean']-samplemean)
-       
+        samplemean = mean(self.numbers[: n + 1])
+        offset = abs(params["mean"] - samplemean)
+
         # return dictionary
-        ret = {'n':n, 'number':self.numbers[n], 
-            'samplemean':samplemean, 'offset':offset}
-        
+        ret = {
+            "n": n,
+            "number": self.numbers[n],
+            "samplemean": samplemean,
+            "offset": offset,
+        }
+
         return ret
-        
+
     def save_state(self, params, rep, n):
         # save array as binary file
-        save(os.path.join(params['path'], params['name'], 
-            'array_%i.npy'%rep), self.numbers)
+        save(
+            os.path.join(params["path"], params["name"], "array_%i.npy" % rep),
+            self.numbers,
+        )
 
     def restore_state(self, params, rep, n):
         # load array from file
-        self.numbers = load(os.path.join(params['path'], 
-            params['name'], 'array_%i.npy'%rep))
-        
+        self.numbers = load(
+            os.path.join(params["path"], params["name"], "array_%i.npy" % rep)
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     mysuite = MySuite()
     mysuite.start()
-

@@ -59,7 +59,7 @@ class MySuite(PyExperimentSuite):
             raise SystemExit('%i-fold cross validation does not make sense. Use at least 2 repetitions.'%params['repetitions'])
         
         key = int(hashlib.sha1(dataset).hexdigest()[:7], 16)
-        indices = range(dataset.shape[0])
+        indices = list(range(dataset.shape[0]))
         if shuffle:
             # create permutation unique to dataset
             random.seed(key)
@@ -94,18 +94,18 @@ class MySuite(PyExperimentSuite):
         self.train, self.test = self.crossvalidation(data, params, rep, shuffle=True)
         
         # output for demonstration purposes
-        print
-        print
-        print 'repetition %i:'%rep
-        print 'training set', self.train.flatten()
-        print 'testing set', self.test.flatten()
-        print 'iterations (one per dot)', 
+        print()
+        print()
+        print('repetition %i:'%rep)
+        print('training set', self.train.flatten())
+        print('testing set', self.test.flatten())
+        print('iterations (one per dot)', end=' ') 
         
     def iterate(self, params, rep, n):
         """ In this example, the iterate method does nothing but print a dot and
             return the repetition and iteration number.
         """
-        print '.',
+        print('.', end=' ')
         
         # use self.train and self.test here for your experiment...
         
