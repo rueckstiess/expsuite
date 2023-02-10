@@ -679,7 +679,7 @@ class PyExperimentSuite(object):
         else:
             # create worker processes
             pool = Pool(processes=self.options.ncores)
-            pool.map(mp_runrep, explist)
+            pool.map(mp_runrep, explist, chunksize=self.options.chunksize)
 
         return True
 
