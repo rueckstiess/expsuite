@@ -570,7 +570,7 @@ class PyExperimentSuite(object):
 
                     # create sub experiments (check if grid or list is requested)
                     if "experiment" in params and params["experiment"] == "list":
-                        iterfunc = itertools.izip
+                        iterfunc = zip
                     elif ("experiment" not in params) or (
                         "experiment" in params and params["experiment"] == "grid"
                     ):
