@@ -250,6 +250,7 @@ class PyExperimentSuite(object):
         logfile = os.path.join(exp, "%i.log" % rep)
         try:
             f = open(logfile)
+            keys = f.readline().strip('\n').split(',')
         except IOError:
             if len(tags) == 1:
                 return []
@@ -257,9 +258,8 @@ class PyExperimentSuite(object):
                 return {}
 
         for line in f:
-            pairs = line.split()
-            for pair in pairs:
-                tag, val = pair.split(":")
+            values = line.strip('\n').split(',')
+            for tag, val in zip(keys,values):
                 if tags == "all" or tag in tags:
                     if not tag in results:
                         try:
@@ -737,9 +737,12 @@ class PyExperimentSuite(object):
                         )
                         self.key_warning_issued.append(k)
 
-            # build string from dictionary
-            outstr = " ".join(["%s:%s" % (x[0], str(x[1])) for x in list(dic.items())])
-            logfile.write(outstr + "\n")
+            # Write the header onyl if logfile was not opened in append mode (logging already started)
+            if logfile.tell() == 0:
+                logfile.write(','.join(dic.keys()))
+                logfile.write('\n')
+            logfile.write(','.join(str(x) for x in dic.values()))
+            logfile.write('\n')
             logfile.flush()
         logfile.close()
 
