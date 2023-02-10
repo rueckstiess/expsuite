@@ -20,11 +20,9 @@
 #############################################################################
 
 from configparser import ConfigParser
-from multiprocessing import Process, Pool, cpu_count
+from multiprocessing import Pool, cpu_count
 from numpy import *
-import types
-import os, sys, time, itertools, re, optparse, types
-
+import os, time, itertools, re, argparse, types
 
 def mp_runrep(args):
     """Helper function to allow multiprocessing support."""
@@ -56,82 +54,100 @@ def convert_param_to_dirname(param):
 def is_iterable(thing):
     return not isinstance(thing, str) and hasattr(thing, "__iter__")
 
-
 class PyExperimentSuite(object):
 
     # change this in subclass, if you support restoring state on iteration level
     restore_supported = False
 
-    def __init__(self):
-        self.parse_opt()
+    def __init__(self, **kwargs):
+        self.parse_opt(**kwargs)
         self.parse_cfg()
 
         # list of keys, that had to be renamed because they contained spaces
         self.key_warning_issued = []
 
-    def parse_opt(self):
+    def parse_opt(self,
+            config='experiments.cfg',
+            numcores=cpu_count(),
+            chunksize=None,
+            delete=False,
+            experiment=None,
+            browse=False,
+            browse_big=False,
+            progress=False):
         """parses the command line options for different settings."""
-        optparser = optparse.OptionParser()
-        optparser.add_option(
+        argparser = argparse.ArgumentParser()
+        argparser.add_argument(
             "-c",
             "--config",
             action="store",
             dest="config",
-            type="string",
-            default="experiments.cfg",
+            type=str,
+            default=config,
             help="your experiments config file",
         )
-        optparser.add_option(
+        argparser.add_argument(
             "-n",
             "--numcores",
             action="store",
             dest="ncores",
-            type="int",
-            default=cpu_count(),
+            type=int,
+            default=numcores,
             help="number of processes you want to use, default is %i" % cpu_count(),
         )
-        optparser.add_option(
+        argparser.add_argument(
+            "--chunksize",
+            action="store",
+            default=chunksize,
+            type=int,
+            dest="chunksize",
+            help="chunks submitted to the process pool"
+        )
+        argparser.add_argument(
             "-d",
-            "--del",
+            "--delete",
             action="store_true",
             dest="delete",
-            default=False,
+            default=delete,
             help="delete experiment folder if it exists",
         )
-        optparser.add_option(
+        argparser.add_argument(
             "-e",
             "--experiment",
             action="append",
             dest="experiments",
-            type="string",
+            type=str,
+            default=experiment,
             help="run only selected experiments, by default run all experiments in config file.",
         )
-        optparser.add_option(
+        argparser.add_argument(
             "-b",
             "--browse",
             action="store_true",
             dest="browse",
-            default=False,
+            default=browse,
             help="browse existing experiments.",
         )
-        optparser.add_option(
+        argparser.add_argument(
             "-B",
             "--Browse",
             action="store_true",
             dest="browse_big",
-            default=False,
+            default=browse_big,
             help="browse existing experiments, more verbose than -b",
         )
-        optparser.add_option(
+        argparser.add_argument(
             "-p",
             "--progress",
             action="store_true",
             dest="progress",
-            default=False,
+            default=progress,
             help="like browse, but only shows name and progress bar",
         )
 
-        options, args = optparser.parse_args()
+        make_list = lambda x: [x] if not isinstance(x,list) and x else x
+        options, args = argparser.parse_known_args()
+        options.experiments = make_list(options.experiments)
         self.options = options
         return options, args
 
