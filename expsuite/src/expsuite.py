@@ -48,7 +48,7 @@ def convert_param_to_dirname(param):
     if type(param) == bytes:
         return param
     else:
-        return re.sub("0+$", "0", "%f" % param)
+        return "".join(x for x in str(param) if x.isalnum() or x == "-")
 
 
 def is_iterable(thing):
