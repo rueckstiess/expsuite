@@ -454,12 +454,12 @@ class PyExperimentSuite(object):
         return results
 
     def browse(self):
-        """go through all subfolders (starting at '.') and return information
-        about the existing experiments. if the -B option is given, all
-        parameters are shown, -b only displays the most important ones.
-        this function does *not* execute any experiments.
+        """go through subfolders starting at the path of the configuration file,
+        and return information about the existing experiments.
+        If the -B option is given, all parameters are shown, -b only displays the most important ones.
+        This function does *not* execute any experiments.
         """
-        for d in self.get_exps("."):
+        for d in self.get_exps(self.cfgparser.defaults()['path']):
             params = self.get_params(d)
             name = params["name"]
             basename = name.split("/")[0]
