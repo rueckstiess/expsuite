@@ -20,11 +20,9 @@
 #############################################################################
 
 from configparser import ConfigParser
-from multiprocessing import Process, Pool, cpu_count
+from multiprocessing import Pool, cpu_count
 from numpy import *
-import types
-import os, sys, time, itertools, re, optparse, types
-
+import os, time, itertools, re, argparse, types
 
 def mp_runrep(args):
     """Helper function to allow multiprocessing support."""
@@ -50,88 +48,106 @@ def convert_param_to_dirname(param):
     if type(param) == bytes:
         return param
     else:
-        return re.sub("0+$", "0", "%f" % param)
+        return "".join(x for x in str(param) if x.isalnum() or x == "-")
 
 
 def is_iterable(thing):
     return not isinstance(thing, str) and hasattr(thing, "__iter__")
-
 
 class PyExperimentSuite(object):
 
     # change this in subclass, if you support restoring state on iteration level
     restore_supported = False
 
-    def __init__(self):
-        self.parse_opt()
+    def __init__(self, **kwargs):
+        self.parse_opt(**kwargs)
         self.parse_cfg()
 
         # list of keys, that had to be renamed because they contained spaces
         self.key_warning_issued = []
 
-    def parse_opt(self):
+    def parse_opt(self,
+            config='experiments.cfg',
+            numcores=cpu_count(),
+            chunksize=None,
+            delete=False,
+            experiment=None,
+            browse=False,
+            browse_big=False,
+            progress=False):
         """parses the command line options for different settings."""
-        optparser = optparse.OptionParser()
-        optparser.add_option(
+        argparser = argparse.ArgumentParser()
+        argparser.add_argument(
             "-c",
             "--config",
             action="store",
             dest="config",
-            type="string",
-            default="experiments.cfg",
+            type=str,
+            default=config,
             help="your experiments config file",
         )
-        optparser.add_option(
+        argparser.add_argument(
             "-n",
             "--numcores",
             action="store",
             dest="ncores",
-            type="int",
-            default=cpu_count(),
+            type=int,
+            default=numcores,
             help="number of processes you want to use, default is %i" % cpu_count(),
         )
-        optparser.add_option(
+        argparser.add_argument(
+            "--chunksize",
+            action="store",
+            default=chunksize,
+            type=int,
+            dest="chunksize",
+            help="chunks submitted to the process pool"
+        )
+        argparser.add_argument(
             "-d",
-            "--del",
+            "--delete",
             action="store_true",
             dest="delete",
-            default=False,
+            default=delete,
             help="delete experiment folder if it exists",
         )
-        optparser.add_option(
+        argparser.add_argument(
             "-e",
             "--experiment",
             action="append",
             dest="experiments",
-            type="string",
+            type=str,
+            default=experiment,
             help="run only selected experiments, by default run all experiments in config file.",
         )
-        optparser.add_option(
+        argparser.add_argument(
             "-b",
             "--browse",
             action="store_true",
             dest="browse",
-            default=False,
+            default=browse,
             help="browse existing experiments.",
         )
-        optparser.add_option(
+        argparser.add_argument(
             "-B",
             "--Browse",
             action="store_true",
             dest="browse_big",
-            default=False,
+            default=browse_big,
             help="browse existing experiments, more verbose than -b",
         )
-        optparser.add_option(
+        argparser.add_argument(
             "-p",
             "--progress",
             action="store_true",
             dest="progress",
-            default=False,
+            default=progress,
             help="like browse, but only shows name and progress bar",
         )
 
-        options, args = optparser.parse_args()
+        make_list = lambda x: [x] if not isinstance(x,list) and x else x
+        options, args = argparser.parse_known_args()
+        options.experiments = make_list(options.experiments)
         self.options = options
         return options, args
 
@@ -234,6 +250,7 @@ class PyExperimentSuite(object):
         logfile = os.path.join(exp, "%i.log" % rep)
         try:
             f = open(logfile)
+            keys = f.readline().strip('\n').split(',')
         except IOError:
             if len(tags) == 1:
                 return []
@@ -241,9 +258,8 @@ class PyExperimentSuite(object):
                 return {}
 
         for line in f:
-            pairs = line.split()
-            for pair in pairs:
-                tag, val = pair.split(":")
+            values = line.strip('\n').split(',')
+            for tag, val in zip(keys,values):
                 if tags == "all" or tag in tags:
                     if not tag in results:
                         try:
@@ -438,12 +454,12 @@ class PyExperimentSuite(object):
         return results
 
     def browse(self):
-        """go through all subfolders (starting at '.') and return information
-        about the existing experiments. if the -B option is given, all
-        parameters are shown, -b only displays the most important ones.
-        this function does *not* execute any experiments.
+        """go through subfolders starting at the path of the configuration file,
+        and return information about the existing experiments.
+        If the -B option is given, all parameters are shown, -b only displays the most important ones.
+        This function does *not* execute any experiments.
         """
-        for d in self.get_exps("."):
+        for d in self.get_exps(self.cfgparser.defaults()['path']):
             params = self.get_params(d)
             name = params["name"]
             basename = name.split("/")[0]
@@ -554,7 +570,7 @@ class PyExperimentSuite(object):
 
                     # create sub experiments (check if grid or list is requested)
                     if "experiment" in params and params["experiment"] == "list":
-                        iterfunc = itertools.izip
+                        iterfunc = zip
                     elif ("experiment" not in params) or (
                         "experiment" in params and params["experiment"] == "grid"
                     ):
@@ -663,7 +679,7 @@ class PyExperimentSuite(object):
         else:
             # create worker processes
             pool = Pool(processes=self.options.ncores)
-            pool.map(mp_runrep, explist)
+            pool.map(mp_runrep, explist, chunksize=self.options.chunksize)
 
         return True
 
@@ -721,9 +737,12 @@ class PyExperimentSuite(object):
                         )
                         self.key_warning_issued.append(k)
 
-            # build string from dictionary
-            outstr = " ".join(["%s:%s" % (x[0], str(x[1])) for x in list(dic.items())])
-            logfile.write(outstr + "\n")
+            # Write the header onyl if logfile was not opened in append mode (logging already started)
+            if logfile.tell() == 0:
+                logfile.write(','.join(dic.keys()))
+                logfile.write('\n')
+            logfile.write(','.join(str(x) for x in dic.values()))
+            logfile.write('\n')
             logfile.flush()
         logfile.close()
 
